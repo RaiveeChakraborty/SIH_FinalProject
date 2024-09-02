@@ -1,0 +1,141 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Vendor Location Tracker</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+    <style>
+        #map { 
+            height: 70vh; 
+            width: 100%; 
+            margin-top: 2vh; 
+            border: 0.2vw solid #ccc; 
+            border-radius: 0.8vw;
+        }
+
+        /* Button Styles */
+        button {
+            background-color: #28a745; /* Green color */
+            color: white;
+            border: none;
+            padding: 1vh 2vw;
+            margin: 1vh;
+            border-radius: 0.5vw;
+            font-size: 1.6vh;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #218838; /* Darker green on hover */
+        }
+
+        /* Additional styling for the body and text */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 2vh;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        p {
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Vendor Location Tracker</h2>
+    <button id="getLocation">Your Location</button>
+    <button id="trackRoutesButton">Track Routes</button>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+    <script>
+        // Initialize the map centered on a default location (Kolkata)
+        const map = L.map('map').setView([22.5726, 88.3639], 13); // Kolkata's coordinates as default
+
+        // Add OpenStreetMap tiles to the map
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Initialize variables to store markers and routing control
+        let userMarker = null;
+        let userLocation = null;
+        let routingControl = null;
+
+        // Function to handle success in finding location
+        function onLocationFound(e) {
+            userLocation = e.latlng; // Store the user's current location
+
+            // Add or update marker for user's location
+            if (!userMarker) {
+                userMarker = L.marker(userLocation).addTo(map).bindPopup('You are here!');
+                userMarker.openPopup();
+            } else {
+                userMarker.setLatLng(userLocation).update();
+            }
+
+            // Center the map to user's location
+            map.setView(userLocation, 16); // Increase zoom for better accuracy
+        }
+
+        // Function to handle geolocation errors
+        function onLocationError(e) {
+            alert('Unable to retrieve your location. Please make sure location services are enabled.');
+        }
+
+        // Function to track routes from user's location to predefined vendor locations
+        function trackRoutes() {
+            if (!userLocation) {
+                alert('Please get your location first.');
+                return;
+            }
+
+            if (routingControl) {
+                map.removeControl(routingControl); // Remove any existing routes
+            }
+
+            // Define vendor locations
+            const vendors = [
+                { name: "College Street", lat: 22.5724, lng: 88.3639 },
+                { name: "Heritage College", lat: 22.5678, lng: 88.3759 },
+                { name: "IEM", lat: 22.5804, lng: 88.4291 }
+            ];
+
+            // Add route from user's location to each vendor location
+            routingControl = L.Routing.control({
+                waypoints: [userLocation, ...vendors.map(vendor => L.latLng(vendor.lat, vendor.lng))],
+                createMarker: function(i, waypoint, n) {
+                    return L.marker(waypoint.latLng).bindPopup(i === 0 ? 'You are here!' : vendors[i - 1].name);
+                },
+                routeWhileDragging: true
+            }).addTo(map);
+        }
+
+        // Event listeners for buttons
+        document.getElementById('getLocation').addEventListener('click', function() {
+            map.locate({ setView: true, maxZoom: 16, enableHighAccuracy: true }); // Enable high accuracy for better location data
+        });
+
+        document.getElementById('trackRoutesButton').addEventListener('click', trackRoutes);
+
+        // Initialize map events
+        map.on('locationfound', onLocationFound);
+        map.on('locationerror', onLocationError);
+    </script>
+
+</body>
+</html>

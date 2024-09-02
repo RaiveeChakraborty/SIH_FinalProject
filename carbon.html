@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eco-Score and Carbon Footprint Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<style>
+    /* Styles for the eco-cal container */
+    .eco-cal {
+        
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+    }
+
+    .container {
+        background: white;
+        padding: 2vh 4vw;
+        border-radius: 1vh;
+        box-shadow: 0 0.5vh 1vh rgba(0, 0, 0, 0.1);
+        max-width: 50vw;
+        width: 100%;
+       
+    }
+
+    h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 2vh;
+    }
+
+    .input-group {
+        margin-bottom: 2vh;
+    }
+
+    .input-group label {
+        display: block;
+        margin-bottom: 1vh;
+        color: #333;
+        font-size: 1.8vh;
+    }
+
+    .input-group input {
+        width: 100%;
+        padding: 1.5vh 1vw;
+        font-size: 1.8vh;
+        border: 0.2vh solid #ddd;
+        border-radius: 1vh;
+        box-sizing: border-box;
+        margin-bottom: 1vh;
+    }
+
+    button {
+        width: 40%;
+        padding: 1.5vh 1vw;
+        font-size: 1.8vh;
+        background-color: #17450e;
+        color: white;
+        border: none;
+        border-radius: 1vh;
+        cursor: pointer;
+        margin-left: 30%;
+    }
+
+    button:hover {
+        background-color:#17450e    
+    }
+
+    .result {
+        margin-top: 2vh;
+        text-align: center;
+        font-size: 2vh;
+        color: #333;
+    }
+
+    #chart-container {
+        margin-top: 2vh;
+    }
+
+</style>
+
+<body>
+    <div class="eco-cal">
+        <div class="container">
+            <h1>Eco-Score and Carbon Footprint Calculator</h1>
+            <form id="eco-form">
+                <div class="input-group">
+                    <label for="plastic">Plastic Recycled (kg):</label>
+                    <input type="number" id="plastic" min="0" step="0.1" value="0">
+                </div>
+                <div class="input-group">
+                    <label for="paper">Paper Recycled (kg):</label>
+                    <input type="number" id="paper" min="0" step="0.1" value="0">
+                </div>
+                <div class="input-group">
+                    <label for="metal">Metal Recycled (kg):</label>
+                    <input type="number" id="metal" min="0" step="0.1" value="0">
+                </div>
+                <div class="input-group">
+                    <label for="organic">Organic Waste Recycled (kg):</label>
+                    <input type="number" id="organic" min="0" step="0.1" value="0">
+                </div>
+                <button type="button" onclick="calculateEcoScore()">Calculate Eco-Score</button>
+            </form>
+            <div id="result" class="result">
+                <!-- Results will be displayed here -->
+            </div>
+            <div id="chart-container">
+                <!-- Placeholder for charts -->
+                <canvas id="carbonChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <script>// Constants for carbon savings (in kg CO2 per kg of waste recycled)
+        const CARBON_SAVINGS = {
+            plastic: 2,
+            paper: 1.1,
+            metal: 5,
+            organic: 0.5
+        };
+        
+        // Calculate eco-score and carbon footprint saved
+        function calculateEcoScore() {
+            const plastic = parseFloat(document.getElementById('plastic').value) || 0;
+            const paper = parseFloat(document.getElementById('paper').value) || 0;
+            const metal = parseFloat(document.getElementById('metal').value) || 0;
+            const organic = parseFloat(document.getElementById('organic').value) || 0;
+        
+            // Calculate carbon savings
+            const carbonSaved = {
+                plastic: plastic * CARBON_SAVINGS.plastic,
+                paper: paper * CARBON_SAVINGS.paper,
+                metal: metal * CARBON_SAVINGS.metal,
+                organic: organic * CARBON_SAVINGS.organic
+            };
+        
+            const totalCarbonSaved = Object.values(carbonSaved).reduce((sum, value) => sum + value, 0);
+            const ecoScore = calculateEcoScoreFromCarbon(totalCarbonSaved);
+        
+            // Display results
+            document.getElementById('result').innerHTML = `
+                <strong>Total Carbon Footprint Saved:</strong> ${totalCarbonSaved.toFixed(2)} kg CO2<br>
+                <strong>Eco-Score:</strong> ${ecoScore}
+            `;
+        
+            // Render chart
+            renderChart(carbonSaved);
+        }
+        
+        function calculateEcoScoreFromCarbon(totalCarbonSaved) {
+            // Example eco-score calculation
+            if (totalCarbonSaved >= 100) return 'Excellent';
+            if (totalCarbonSaved >= 50) return 'Good';
+            if (totalCarbonSaved >= 20) return 'Average';
+            return 'Needs Improvement';
+        }
+        
+        function renderChart(carbonSaved) {
+            const ctx = document.getElementById('carbonChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(carbonSaved),
+                    datasets: [{
+                        label: 'Carbon Saved (kg CO2)',
+                        data: Object.values(carbonSaved),
+                        backgroundColor: [
+                            '#007bff',
+                            '#28a745',
+                            '#dc3545',
+                            '#ffc107'
+                        ],
+                        borderColor: [
+                            '#0056b3',
+                            '#218838',
+                            '#c82333',
+                            '#e0a800'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>
